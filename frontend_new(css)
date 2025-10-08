@@ -1,301 +1,236 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>AI-Powered Phishing Detection Dashboard</title>
+:root{
+  --bg:#0b1116;
+  --panel: rgba(18,27,34,0.65);
+  --glass: rgba(255,255,255,0.04);
+  --accent: #1dd1a1;
+  --accent-2: #00b8ff;
+  --muted:#9aa6b2;
+  --danger:#ff6b6b;
+  --glass-border: rgba(255,255,255,0.06);
+  --radius:14px;
+  --font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+}
 
-  <!-- Fonts + Icons -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  background:linear-gradient(180deg,#07101a 0%, #0b1116 100%);
+  font-family:var(--font);
+  color:#e6f0f2;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
 
-  <!-- Styles -->
-  <link rel="stylesheet" href="styles.css">
+/* Topbar */
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:18px 28px;
+  border-bottom:3px solid rgba(29,209,161,0.08);
+  background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+}
+.brand{display:flex;align-items:center;gap:16px}
+.logo{
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  width:60px;height:60px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.5), 0 0 18px rgba(0,184,255,0.08);
+  color:#012; font-size:22px;
+}
+.title{font-weight:700;font-size:20px;text-shadow:0 2px 10px rgba(0,0,0,0.6)}
 
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
-  <header class="topbar">
-    <div class="brand">
-      <div class="logo"><i class="fas fa-shield-alt"></i></div>
-      <div class="title">AI-Powered Phishing Detection Dashboard</div>
-    </div>
-    <div class="header-controls">
-      <div class="control-item">
-        <label class="switch">
-          <input id="toggleSoundHeader" type="checkbox" checked>
-          <span class="slider"></span>
-        </label>
-        <small>Sound</small>
-      </div>
-      <div class="control-item">
-        <button id="btnQuickPause" class="ghost">Pause Feed</button>
-      </div>
-    </div>
-  </header>
+/* Container */
+.container{
+  max-width:1200px;
+  margin:24px auto;
+  padding:0 18px 40px;
+}
 
-  <main class="container">
+/* Tabs */
+.nav-tabs{
+  display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;
+}
+.tab-btn{
+  padding:12px 18px;border-radius:12px;border:1px solid transparent;
+  background:transparent;color:var(--muted);cursor:pointer;font-weight:600;
+  transition:all 200ms ease;backdrop-filter: blur(6px);
+}
+.tab-btn.active{
+  color:#052b2a;
+  background:linear-gradient(90deg,var(--accent),var(--accent-2));
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5), 0 0 30px rgba(0,184,255,0.06);
+  transform:translateY(-2px);
+}
 
-    <!-- Tabs -->
-    <nav class="nav-tabs" role="tablist" aria-label="Main navigation">
-      <button class="tab-btn active" data-target="overview">Overview</button>
-      <button class="tab-btn" data-target="deliverables">Deliverables</button>
-      <button class="tab-btn" data-target="dashboard">Live Feed</button>
-      <button class="tab-btn" data-target="analytics">Analytics</button>
-      <button class="tab-btn" data-target="topThreats">Top Threats</button>
-      <button class="tab-btn" data-target="settings">Settings</button>
-    </nav>
+/* Tab visibility */
+.tab-content { display:none; }
+.tab-content.show { display:block; }
 
-    <!-- Overview -->
-    <section id="overview" class="tab-content show">
-      <div class="card large">
-        <div class="card-header">
-          <h2>Overview</h2>
-          <div class="chip">Latest model: <strong>Transformer-v2</strong></div>
-        </div>
+/* Glass card */
+.card{
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-radius:var(--radius); padding:18px;
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 28px rgba(2,6,23,0.6);
+}
+.card.large{padding:22px}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.card-header h2,h3{margin:0;color:#dff6f0}
+.chip{background:linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));padding:6px 10px;border-radius:999px;font-size:13px;color:var(--muted);border:1px solid rgba(255,255,255,0.02)}
+.chip.small{font-size:12px;padding:6px;margin-left:8px}
+.controls-inline{display:flex;gap:10px;align-items:center}
 
-        <div class="features-grid">
-          <div class="feature">
-            <i class="fas fa-bolt"></i>
-            <div>
-              <h4>Real-Time Analysis</h4>
-              <p>Streaming inference with incremental learning and feedback loop.</p>
-              <div class="stat-bar-row">
-                <div class="stat-label">Realtime Confidence</div>
-                <div class="stat-bar-container">
-                  <div id="statBarRealtime" class="stat-bar" style="width:0%"></div>
-                </div>
-                <div class="stat-value-mini" id="statRealtimeValue">0%</div>
-              </div>
-            </div>
-          </div>
+/* Overview features */
+.features-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:14px;
+}
+.feature{
+  background:linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));
+  padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,0.02);
+  display:flex;gap:12px;align-items:flex-start;
+}
+.feature i{font-size:20px;color:var(--accent-2);width:28px}
+.feature h4{margin:0 0 6px 0;font-size:15px}
+.feature p{margin:0;color:var(--muted);font-size:13px}
 
-          <div class="feature">
-            <i class="fas fa-bell"></i>
-            <div>
-              <h4>Explainable Alerts</h4>
-              <p>Displays cues: suspicious links, sender spoofing, attachments.</p>
-              <div class="stat-bar-row">
-                <div class="stat-label">Alert Rate</div>
-                <div class="stat-bar-container">
-                  <div id="statBarAlert" class="stat-bar" style="width:0%"></div>
-                </div>
-                <div class="stat-value-mini" id="statAlertValue">0%</div>
-              </div>
-            </div>
-          </div>
+/* stat bar small rows */
+.stat-bar-row{margin-top:8px;display:flex;align-items:center;gap:10px}
+.stat-label{font-size:13px;color:var(--muted);min-width:110px}
+.stat-value-mini{font-weight:700;min-width:50px;text-align:right}
 
-          <div class="feature">
-            <i class="fas fa-robot"></i>
-            <div>
-              <h4>Adaptive Learning</h4>
-              <p>Feedback improves model confidence and reduces false positives.</p>
-              <div class="stat-bar-row">
-                <div class="stat-label">Adaptiveness</div>
-                <div class="stat-bar-container">
-                  <div id="statBarAdapt" class="stat-bar" style="width:40%"></div>
-                </div>
-                <div class="stat-value-mini" id="statAdaptValue">40%</div>
-              </div>
-            </div>
-          </div>
+/* stat bar container */
+.stat-bar-container{
+  width:100%;
+  background: rgba(255,255,255,0.04);
+  border-radius: 10px;
+  overflow: hidden;
+  height: 14px;
+  position:relative;
+}
+.stat-bar{
+  height:100%;
+  width:0%;
+  background: linear-gradient(90deg,var(--accent),var(--accent-2));
+  transition: width 0.6s ease, background 0.25s ease;
+}
+.stat-bar:hover{
+  background:linear-gradient(90deg,#2ecc71,#5ce6a4);
+}
 
-          <div class="feature">
-            <i class="fas fa-language"></i>
-            <h4>Multi-Language</h4>
-            <p>English, Hindi, Spanish, ...</p>
-          </div>
+/* Deliverables list */
+.deliverables-list{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.deliverable-item{padding:12px;border-radius:10px;background:rgba(255,255,255,0.01);display:flex;flex-direction:column;gap:8px}
+.deliverable-head{display:flex;align-items:center;gap:10px;font-weight:600}
+.deliverable-bar-container{width:100%;height:12px;background:rgba(255,255,255,0.03);border-radius:8px;overflow:hidden}
+.deliverable-bar{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .6s}
+.deliverable-bar:hover{background:linear-gradient(90deg,#2ecc71,#5ce6a4)}
 
-          <div class="feature">
-            <i class="fas fa-lock"></i>
-            <h4>Secure</h4>
-            <p>Private datasets, RBAC, audit logs.</p>
-          </div>
+/* Layout for dashboard */
+.layout-row{display:flex;align-items:flex-start}
+.feed-column{flex:1;min-width:360px}
+.stats-column{width:320px}
 
-          <div class="feature">
-            <i class="fas fa-plug"></i>
-            <h4>Integrations</h4>
-            <p>Mail clients, SIEM, Slack, webhook alerts.</p>
-          </div>
-        </div>
-      </div>
-    </section>
+/* Most suspicious */
+.most-suspicious{
+  background:linear-gradient(90deg, rgba(231,76,60,0.04), rgba(231,76,60,0.02));
+  padding:12px;border-radius:12px;margin-bottom:12px;border:1px solid rgba(231,76,60,0.06);
+  transition: box-shadow 200ms;
+}
+.most-suspicious.flash{box-shadow: 0 0 24px rgba(231,76,60,0.25); animation: pulseRed 1s ease-in-out 2}
+@keyframes pulseRed{50%{transform:translateY(-3px)}}
 
-    <!-- Deliverables -->
-    <section id="deliverables" class="tab-content">
-      <div class="card">
-        <div class="card-header">
-          <h2>Deliverables</h2>
-        </div>
+/* Email list */
+.email-list{display:flex;flex-direction:column;gap:10px;max-height:520px;overflow:auto;padding-right:6px}
+.email-card{
+  display:flex;justify-content:space-between;align-items:center;padding:12px;border-radius:12px;
+  border:1px solid rgba(255,255,255,0.02);background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));
+  cursor:pointer;transition:transform 180ms, box-shadow 180ms, background 200ms;
+  transform:translateY(-6px); opacity:0; /* start hidden for animation */
+}
+.email-card.showing{transform:translateY(0);opacity:1}
+.email-card:hover{transform:translateY(-8px);box-shadow:0 10px 30px rgba(0,0,0,0.5)}
+.email-meta{display:flex;gap:12px;align-items:center}
+.email-avatar{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.02);font-weight:700}
+.email-info{min-width:0}
+.email-info .from{font-weight:700;font-size:14px}
+.email-info .subject{color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badge{background:var(--danger);color:#fff;padding:4px 8px;border-radius:999px;font-size:12px}
 
-        <ul class="deliverables-list" id="deliverablesList">
-          <!-- Example deliverables with progress in data-progress -->
-          <li class="deliverable-item">
-            <div class="deliverable-head"><i class="fas fa-laptop-code"></i><strong>Interactive prototype tool</strong></div>
-            <div class="deliverable-bar-container"><div class="deliverable-bar" data-progress="85"></div></div>
-          </li>
-          <li class="deliverable-item">
-            <div class="deliverable-head"><i class="fas fa-database"></i><strong>Trained model & dataset pipeline</strong></div>
-            <div class="deliverable-bar-container"><div class="deliverable-bar" data-progress="60"></div></div>
-          </li>
-          <li class="deliverable-item">
-            <div class="deliverable-head"><i class="fas fa-chart-line"></i><strong>Real-time analytics & charts</strong></div>
-            <div class="deliverable-bar-container"><div class="deliverable-bar" data-progress="72"></div></div>
-          </li>
-          <li class="deliverable-item">
-            <div class="deliverable-head"><i class="fas fa-file-alt"></i><strong>Logs & audit reports</strong></div>
-            <div class="deliverable-bar-container"><div class="deliverable-bar" data-progress="45"></div></div>
-          </li>
-          <li class="deliverable-item">
-            <div class="deliverable-head"><i class="fas fa-network-wired"></i><strong>Integration adapters</strong></div>
-            <div class="deliverable-bar-container"><div class="deliverable-bar" data-progress="55"></div></div>
-          </li>
-          <li class="deliverable-item">
-            <div class="deliverable-head"><i class="fas fa-user-shield"></i><strong>RBAC & audit trails</strong></div>
-            <div class="deliverable-bar-container"><div class="deliverable-bar" data-progress="30"></div></div>
-          </li>
-        </ul>
-      </div>
-    </section>
+/* status dot */
+.status-dot{width:10px;height:10px;border-radius:50%;margin-right:6px}
+.phish-dot{background:var(--danger)}
+.legit-dot{background:#2ecc71}
 
-    <!-- Live Feed -->
-    <section id="dashboard" class="tab-content">
-      <div class="layout-row" style="gap:18px;">
-        <div class="card feed-column">
-          <div class="card-header">
-            <h3>Live Email Feed</h3>
-            <div class="controls-inline">
-              <label for="languageSelect">Language</label>
-              <select id="languageSelect">
-                <option value="en">English</option>
-                <option value="hi">Hindi</option>
-                <option value="es">Spanish</option>
-              </select>
-              <div class="chip small" id="liveIndicator"><i class="fas fa-circle"></i> LIVE</div>
-            </div>
-          </div>
+/* new slide-in animation for live feed */
+@keyframes slideIn {
+  from { transform: translateY(-18px); opacity:0 }
+  to { transform: translateY(0); opacity:1 }
+}
+.email-card.animate-in { animation: slideIn 420ms ease forwards }
 
-          <div id="mostSuspicious" class="most-suspicious">No emails yet</div>
+/* spotlight for suspicious */
+.email-card.suspicious { border-left:4px solid rgba(231,76,60,0.12) }
+.email-card.suspicious .email-avatar { box-shadow: 0 6px 20px rgba(231,76,60,0.06) }
 
-          <div id="emailDashboard" class="email-list">
-            <!-- emails injected here -->
-          </div>
-        </div>
+/* stats area */
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:10px}
+.stat{background:linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));padding:12px;border-radius:10px;text-align:left}
+.stat-value{font-size:20px;font-weight:700;color:#fff}
+.stat-label{font-size:12px;color:var(--muted)}
 
-        <div class="card stats-column">
-          <div class="card-header"><h3>Quick Stats</h3></div>
+/* charts area */
+.charts-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:10px}
+.chart-card{background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));padding:12px;border-radius:10px;min-height:220px}
 
-          <div class="stat-grid">
-            <div class="stat">
-              <div class="stat-label">Total Processed</div>
-              <div class="stat-value" id="statTotal">0</div>
-              <div class="stat-bar-container"><div id="statBarTotal" class="stat-bar" style="width:0%"></div></div>
-            </div>
+/* threats list */
+.threats-list{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.threat-item{padding:12px;border-radius:10px;background:rgba(255,255,255,0.01);display:flex;justify-content:space-between;align-items:center;border-left:4px solid rgba(231,76,60,0.12)}
 
-            <div class="stat">
-              <div class="stat-label">Phishing</div>
-              <div class="stat-value" id="statPhish">0</div>
-              <div class="stat-bar-container"><div id="statBarPhish" class="stat-bar" style="width:0%"></div></div>
-            </div>
+/* settings */
+.settings-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.setting{background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));padding:12px;border-radius:10px}
+.setting.inline{display:flex;align-items:center;justify-content:space-between}
+.setting.full{grid-column:1/-1}
 
-            <div class="stat">
-              <div class="stat-label">Legitimate</div>
-              <div class="stat-value" id="statLegit">0</div>
-              <div class="stat-bar-container"><div id="statBarLegit" class="stat-bar" style="width:0%"></div></div>
-            </div>
+/* buttons + switches */
+button{font-family:var(--font);cursor:pointer}
+.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:8px;color:var(--muted)}
+.primary{background:linear-gradient(90deg,var(--accent),var(--accent-2));padding:9px 12px;border-radius:10px;border:none;color:#042022;font-weight:700}
+.danger{background:linear-gradient(90deg,#ff7a7a,#ff6b6b);padding:9px 12px;border-radius:10px;border:none;color:#041414}
+.btn-row{display:flex;gap:8px}
 
-            <div class="stat">
-              <div class="stat-label">Avg Confidence</div>
-              <div class="stat-value" id="statAvgConf">0%</div>
-              <div class="stat-bar-container"><div id="statBarConf" class="stat-bar" style="width:0%"></div></div>
-            </div>
-          </div>
+/* switch */
+.switch{position:relative;display:inline-block;width:46px;height:26px}
+.switch input{display:none}
+.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.06);border-radius:999px;border:1px solid rgba(255,255,255,0.03)}
+.slider:before{position:absolute;content:'';height:20px;width:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:all 140ms}
+.switch input:checked + .slider{background:linear-gradient(90deg,var(--accent),var(--accent-2))}
+.switch input:checked + .slider:before{transform:translateX(20px)}
 
-          <div class="chart-mini">
-            <canvas id="miniPie"></canvas>
-          </div>
-        </div>
-      </div>
-    </section>
+/* live indicator pulse */
+#liveIndicator i{color:#ff6b6b;margin-right:6px}
+#liveIndicator { display:flex; align-items:center; gap:6px; padding:6px 8px; border-radius:999px; background:rgba(255,255,255,0.02) }
+#liveIndicator.pulse { animation: pulseLive 1500ms infinite; }
+@keyframes pulseLive { 0%{ transform:scale(1) } 50%{ transform:scale(1.02) } 100%{ transform:scale(1) } }
 
-    <!-- Analytics -->
-    <section id="analytics" class="tab-content">
-      <div class="card">
-        <div class="card-header">
-          <h2>Analytics</h2>
-          <div class="controls-inline">
-            <button class="ghost" id="resetCharts">Reset</button>
-          </div>
-        </div>
+/* footer with horizontal line */
+.footer{
+  text-align:center;color:var(--muted);padding:14px;margin-top:18px;
+  border-top:1px solid rgba(255,255,255,0.12);
+}
 
-        <div class="charts-grid">
-          <div class="chart-card">
-            <h4>Phishing vs Legit</h4>
-            <canvas id="pieChartLarge"></canvas>
-          </div>
-
-          <div class="chart-card">
-            <h4>Probability Trend</h4>
-            <canvas id="lineChartLarge"></canvas>
-          </div>
-
-          <div class="chart-card">
-            <h4>Top Senders</h4>
-            <canvas id="barSenders"></canvas>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Top Threats -->
-    <section id="topThreats" class="tab-content">
-      <div class="card">
-        <div class="card-header"><h2>Top Threats</h2></div>
-        <ul id="topThreatsList" class="threats-list"></ul>
-      </div>
-    </section>
-
-    <!-- Settings -->
-    <section id="settings" class="tab-content">
-      <div class="card">
-        <div class="card-header"><h2>Settings & Controls</h2></div>
-        <div class="settings-grid">
-          <div class="setting">
-            <label>Alert Threshold: <strong id="thresholdLabel">75%</strong></label>
-            <input id="alertThreshold" type="range" min="0" max="100" value="75">
-          </div>
-
-          <div class="setting">
-            <label>Update interval (ms): <strong id="intervalLabel">4000</strong></label>
-            <input id="updateInterval" type="range" min="500" max="8000" step="250" value="4000">
-          </div>
-
-          <div class="setting inline">
-            <label>Sound Alerts</label>
-            <label class="switch"><input id="toggleSound" type="checkbox" checked><span class="slider"></span></label>
-          </div>
-
-          <div class="setting inline">
-            <label>Flash Suspicious</label>
-            <label class="switch"><input id="toggleFlash" type="checkbox" checked><span class="slider"></span></label>
-          </div>
-
-          <div class="setting full">
-            <label>Simulate Mode:</label>
-            <div class="btn-row">
-              <button id="btnSimStart" class="primary">Start Simulation</button>
-              <button id="btnSimStop" class="ghost">Stop</button>
-              <button id="btnClear" class="danger">Clear Feed</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <footer class="footer">© 2025 AI Phishing Detection System</footer>
-  </main>
-
-  <script src="script.js"></script>
-</body>
-</html>
+/* responsive */
+@media (max-width:980px){
+  .features-grid{grid-template-columns:repeat(2,1fr)}
+  .charts-grid{grid-template-columns:repeat(2,1fr)}
+  .layout-row{flex-direction:column}
+  .stats-column{width:100%}
+}
+@media (max-width:640px){
+  .features-grid{grid-template-columns:1fr}
+  .charts-grid{grid-template-columns:1fr}
+  .nav-tabs{overflow:auto;padding-bottom:6px}
+}
