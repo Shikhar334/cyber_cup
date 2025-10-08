@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AI-Powered Phishing Detection Dashboard</title>
+
+  <!-- Fonts + Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo"><i class="fas fa-shield-alt"></i></div>
+      <div class="title">AI-Powered Phishing Detection Dashboard</div>
+    </div>
+    <div class="header-controls">
+      <div class="control-item">
+        <label class="switch">
+          <input id="toggleSoundHeader" type="checkbox" checked>
+          <span class="slider"></span>
+        </label>
+        <small>Sound</small>
+      </div>
+      <div class="control-item">
+        <button id="btnQuickPause" class="ghost">Pause Feed</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- Tabs -->
+    <nav class="nav-tabs" role="tablist" aria-label="Main navigation">
+      <button class="tab-btn active" data-target="overview">Overview</button>
+      <button class="tab-btn" data-target="deliverables">Deliverables</button>
+      <button class="tab-btn" data-target="dashboard">Live Feed</button>
+      <button class="tab-btn" data-target="analytics">Analytics</button>
+      <button class="tab-btn" data-target="topThreats">Top Threats</button>
+      <button class="tab-btn" data-target="settings">Settings</button>
+    </nav>
+
+    <!-- Overview -->
+    <section id="overview" class="tab-content show">
+      <div class="card glass large">
+        <div class="card-header">
+          <h2>Overview</h2>
+          <div class="chip">Latest model: <strong>Transformer-v2</strong></div>
+        </div>
+        <div class="features-grid">
+          <div class="feature">
+            <i class="fas fa-bolt"></i>
+            <h4>Real-Time Analysis</h4>
+            <p>Streaming inference with incremental learning and feedback loop.</p>
+          </div>
+          <div class="feature">
+            <i class="fas fa-bell"></i>
+            <h4>Explainable Alerts</h4>
+            <p>Displays cues: suspicious links, sender spoofing, attachments.</p>
+          </div>
+          <div class="feature">
+            <i class="fas fa-robot"></i>
+            <h4>Adaptive Learning</h4>
+            <p>Feedback improves model confidence and reduces false positives.</p>
+          </div>
+          <div class="feature">
+            <i class="fas fa-language"></i>
+            <h4>Multi-Language</h4>
+            <p>English, Hindi, Spanish, and more via translation + detectors.</p>
+          </div>
+          <div class="feature">
+            <i class="fas fa-lock"></i>
+            <h4>Secure</h4>
+            <p>Private datasets, RBAC, audit logs.</p>
+          </div>
+          <div class="feature">
+            <i class="fas fa-plug"></i>
+            <h4>Integrations</h4>
+            <p>Mail clients, SIEM, Slack, webhook alerts.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Deliverables -->
+    <section id="deliverables" class="tab-content">
+      <div class="card glass">
+        <div class="card-header">
+          <h2>Deliverables</h2>
+        </div>
+        <ul class="deliverables-list">
+          <li><i class="fas fa-laptop-code"></i> Interactive prototype tool</li>
+          <li><i class="fas fa-database"></i> Trained model & dataset pipeline</li>
+          <li><i class="fas fa-chart-line"></i> Real-time analytics & charts</li>
+          <li><i class="fas fa-file-alt"></i> Logs & audit reports</li>
+          <li><i class="fas fa-network-wired"></i> Integration adapters (SMTP, IMAP, APIs)</li>
+          <li><i class="fas fa-user-shield"></i> Role-based access & audit trails</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Live Feed -->
+    <section id="dashboard" class="tab-content">
+      <div class="layout-row" style="gap:18px;">
+        <div class="card glass feed-column">
+          <div class="card-header">
+            <h3>Live Email Feed</h3>
+            <div class="controls-inline">
+              <label for="languageSelect">Language</label>
+              <select id="languageSelect">
+                <option value="en">English</option>
+                <option value="hi">Hindi</option>
+                <option value="es">Spanish</option>
+              </select>
+              <div class="chip small" id="liveIndicator"><i class="fas fa-circle"></i> LIVE</div>
+            </div>
+          </div>
+          <div id="mostSuspicious" class="most-suspicious"></div>
+          <div id="emailDashboard" class="email-list"></div>
+        </div>
+
+        <div class="card glass stats-column">
+          <div class="card-header">
+            <h3>Quick Stats</h3>
+          </div>
+          <div class="stat-grid">
+            <div class="stat">
+              <div class="stat-value" id="statTotal">0</div>
+              <div class="stat-label">Total Processed</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value" id="statPhish">0</div>
+              <div class="stat-label">Phishing</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value" id="statLegit">0</div>
+              <div class="stat-label">Legitimate</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value" id="statAvgConf">0%</div>
+              <div class="stat-label">Avg Confidence</div>
+            </div>
+          </div>
+          <div class="chart-mini">
+            <canvas id="miniPie"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Analytics -->
+    <section id="analytics" class="tab-content">
+      <div class="card glass">
+        <div class="card-header">
+          <h2>Analytics</h2>
+          <div class="controls-inline">
+            <button class="ghost" id="resetCharts">Reset</button>
+          </div>
+        </div>
+        <div class="charts-grid">
+          <div class="chart-card">
+            <h4>Phishing vs Legit</h4>
+            <canvas id="pieChartLarge"></canvas>
+          </div>
+          <div class="chart-card">
+            <h4>Probability Trend</h4>
+            <canvas id="lineChartLarge"></canvas>
+          </div>
+          <div class="chart-card">
+            <h4>Top Senders</h4>
+            <canvas id="barSenders"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Top Threats -->
+    <section id="topThreats" class="tab-content">
+      <div class="card glass">
+        <div class="card-header">
+          <h2>Top Threats</h2>
+        </div>
+        <ul id="topThreatsList" class="threats-list"></ul>
+      </div>
+    </section>
+
+    <!-- Settings -->
+    <section id="settings" class="tab-content">
+      <div class="card glass">
+        <div class="card-header"><h2>Settings & Controls</h2></div>
+        <div class="settings-grid">
+          <div class="setting">
+            <label>Alert Threshold: <strong id="thresholdLabel">75%</strong></label>
+            <input id="alertThreshold" type="range" min="0" max="100" value="75">
+          </div>
+
+          <div class="setting">
+            <label>Update interval (ms): <strong id="intervalLabel">4000</strong></label>
+            <input id="updateInterval" type="range" min="500" max="8000" step="250" value="4000">
+          </div>
+
+          <div class="setting inline">
+            <label>Sound Alerts</label>
+            <label class="switch"><input id="toggleSound" type="checkbox" checked><span class="slider"></span></label>
+          </div>
+
+          <div class="setting inline">
+            <label>Flash Suspicious</label>
+            <label class="switch"><input id="toggleFlash" type="checkbox" checked><span class="slider"></span></label>
+          </div>
+
+          <div class="setting full">
+            <label>Simulate Mode:</label>
+            <div class="btn-row">
+              <button id="btnSimStart" class="primary">Start Simulation</button>
+              <button id="btnSimStop" class="ghost">Stop</button>
+              <button id="btnClear" class="danger">Clear Feed</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">© 2025 AI Phishing Detection System</footer>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
