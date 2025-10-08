@@ -61,7 +61,7 @@
 
   function pushEmail(e){
     emailPool.unshift(e);
-    if(emailPool.length > 40) emailPool.pop();
+    if(emailPool.length > 80) emailPool.pop();
     stats.total++;
     if(e.type === 'phishing') stats.phish++; else stats.legit++;
     // compute avg conf
@@ -72,19 +72,20 @@
   // --- Rendering ---
   function renderEmails(){
     emailDashboard.innerHTML = '';
-    emailPool.forEach(email => {
+    emailPool.forEach((email, idx) => {
       const el = document.createElement('div');
       el.className = 'email-card';
       el.dataset.id = email.id;
 
       const isDanger = email.type === 'phishing' && email.confidence >= settings.threshold;
+      if(isDanger) el.classList.add('suspicious');
 
       el.innerHTML = `
         <div class="email-meta">
           <div class="email-avatar">${email.from.charAt(0).toUpperCase()}</div>
           <div class="email-info">
             <div class="from">${email.from}</div>
-            <div class="subject">${email.subject} • <span class="muted">${nowLabel()}</span></div>
+            <div class="subject">${email.subject} • <span class="muted">${email.time.toLocaleTimeString()}</span></div>
           </div>
         </div>
         <div class="email-right">
@@ -100,14 +101,15 @@
         </div>
       `;
 
+      // Add click to expand details
       el.addEventListener('click', () => showEmailDetails(email, el));
 
-      if(settings.flash && isDanger){
-        el.classList.add('flash-card');
-        el.animate([{boxShadow:'0 0 0 rgba(231,76,60,0.0)'},{boxShadow:'0 18px 48px rgba(231,76,60,0.08)'}], {duration:800,iterations:2});
-      }
-
+      // append and animate in
       emailDashboard.appendChild(el);
+      // small delay so animation plays for new item only
+      requestAnimationFrame(()=> {
+        el.classList.add('animate-in','showing');
+      });
     });
   }
 
@@ -139,7 +141,8 @@
     `;
     el.appendChild(panel);
 
-    if(settings.sound && email.type === 'phishing') playPing();
+    // play sound if phishing and enabled
+    if(settings.sound && email.type === 'phishing'){ playPing(); }
   }
 
   // --- Marking feedback ---
@@ -210,7 +213,7 @@
       const last = emailPool[0];
       charts.line.data.labels.push(nowLabel());
       charts.line.data.datasets[0].data.push(last.confidence);
-      if(charts.line.data.labels.length > 12){ charts.line.data.labels.shift(); charts.line.data.datasets[0].data.shift(); }
+      if(charts.line.data.labels.length > 18){ charts.line.data.labels.shift(); charts.line.data.datasets[0].data.shift(); }
       charts.line.update();
     }
 
@@ -228,9 +231,40 @@
     statPhish.innerText = stats.phish;
     statLegit.innerText = stats.legit;
     statAvg.innerText = stats.avgConf + '%';
+
+    // update stat bars (percentages)
+    const phishPerc = stats.total ? Math.round((stats.phish/stats.total)*100) : 0;
+    const legitPerc = stats.total ? Math.round((stats.legit/stats.total)*100) : 0;
+    const confPerc = stats.avgConf;
+
+    document.getElementById('statBarPhish').style.width = phishPerc + '%';
+    document.getElementById('statBarLegit').style.width = legitPerc + '%';
+    document.getElementById('statBarConf').style.width = Math.min(100, confPerc) + '%';
+    document.getElementById('statBarTotal').style.width = stats.total > 0 ? Math.min(100, Math.log10(stats.total+1)*10) + '%' : '0%';
+
+    // small mini number updates for overview bars
+    const realtime = Math.min(100, stats.avgConf);
+    document.getElementById('statBarRealtime').style.width = realtime + '%';
+    document.getElementById('statRealtimeValue').innerText = realtime + '%';
+
+    const alertRate = phishPerc;
+    document.getElementById('statBarAlert').style.width = alertRate + '%';
+    document.getElementById('statAlertValue').innerText = alertRate + '%';
+
+    // adaptiveness static sample kept
+    document.getElementById('statBarAdapt').style.width = '40%';
+    document.getElementById('statAdaptValue').innerText = '40%';
   }
 
-  // --- Audio ---
+  // --- Deliverables progress render ---
+  function updateDeliverablesProgress(){
+    document.querySelectorAll('.deliverable-bar').forEach(bar=>{
+      const perc = parseInt(bar.dataset.progress || 0, 10);
+      bar.style.width = Math.max(0, Math.min(100, perc)) + '%';
+    });
+  }
+
+  // --- audio ---
   let pingAudio = null;
   function ensureAudio(){
     if(!pingAudio){
@@ -244,8 +278,21 @@
   }
 
   // --- Main update loop ---
-  function updateAll(){ renderEmails(); updateMostSuspicious(); updateTopThreatList(); updateCharts(); updateStatsUI(); }
-  function tickOnce(){ const e = createEmail(); pushEmail(e); updateAll(); if(settings.sound && e.type==='phishing' && e.confidence >= settings.threshold) playPing(); }
+  function updateAll(){
+    renderEmails();
+    updateMostSuspicious();
+    updateTopThreatList();
+    updateCharts();
+    updateStatsUI();
+    updateDeliverablesProgress();
+  }
+  function tickOnce(){
+    const e = createEmail();
+    pushEmail(e);
+    // if it's phishing and above threshold, make it extra suspicious
+    if(settings.sound && e.type==='phishing' && e.confidence >= settings.threshold) playPing();
+    updateAll();
+  }
 
   function startTimer(){ if(timer) clearInterval(timer); timer = setInterval(()=>{ if(settings.running) tickOnce(); }, settings.interval); }
   function stopTimer(){ if(timer) clearInterval(timer); timer=null; }
@@ -257,17 +304,24 @@
       btn.classList.add('active');
       const target = btn.dataset.target;
       document.querySelectorAll('.tab-content').forEach(sec=>sec.classList.remove('show'));
-      document.getElementById(target).classList.add('show');
+      const el = document.getElementById(target);
+      if(el) el.classList.add('show');
     });
   });
 
   // --- DOMContentLoaded ---
   document.addEventListener('DOMContentLoaded', () => {
+    // init charts
     initCharts();
+
+    // seed initial emails
     for(let i=0;i<6;i++) pushEmail(createEmail());
     updateAll();
+
+    // start feed
     startTimer();
 
+    // control wiring
     rangeInterval.addEventListener('input', (ev) => { settings.interval=parseInt(ev.target.value); intervalLabel.innerText=settings.interval; startTimer(); });
     rangeThreshold.addEventListener('input', (ev)=>{ settings.threshold=parseInt(ev.target.value); thresholdLabel.innerText=settings.threshold+'%'; });
 
@@ -281,9 +335,31 @@
     btnClear.addEventListener('click', ()=>{ emailPool=[]; stats={total:0,phish:0,legit:0,avgConf:0}; updateAll(); });
 
     btnQuickPause.addEventListener('click', ()=>{
-      settings.running=!settings.running;
-      btnQuickPause.innerText = settings.running?'Pause Feed':'Resume Feed';
+      settings.running = !settings.running;
+      btnQuickPause.innerText = settings.running ? 'Pause Feed' : 'Resume Feed';
+      liveIndicator.style.opacity = settings.running ? '1' : '0.45';
     });
+
+    // language select: adjust cues
+    document.getElementById('languageSelect').addEventListener('change', (e)=>{
+      const lang = e.target.value;
+      emailPool.forEach(em => {
+        if(lang==='hi') em.cue = em.type==='phishing' ? 'संदिग्ध URL का पता चला!' : 'कोई संदिग्ध सामग्री नहीं';
+        else if(lang==='es') em.cue = em.type==='phishing' ? '¡URL sospechoso detectado!' : 'Contenido verificado.';
+        else em.cue = cues[randInt(0,cues.length-1)];
+      });
+      renderEmails();
+    });
+
+    // live indicator pulse
+    liveIndicator.classList.add('pulse');
+
+    // keep charts live every update
+    setInterval(()=>{ try{ charts && charts.pie && charts.pie.update(); }catch(e){} },2000);
+
+    // deliverables progress initial render
+    updateDeliverablesProgress();
   });
 
 })();
+
